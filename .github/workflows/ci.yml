@@ -74,31 +74,23 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Set AKS Context
-        uses: azure/aks-set-context@v3
-        with:
-          resource-group: ${{ secrets.AKS_RESOURCE_GROUP }}
-          cluster-name: ${{ secrets.AKS_NAME }}
-
-      - name: Deploy to AKS
-        uses: azure/k8s-deploy@v1
-        with:
-          manifests: |
-            k8s/00-namespace.yml
-            k8s/02-configmaps.yml
-            k8s/ingress.yml
-            k8s/services/auth-service.yml
-            k8s/services/notification-service.yml
-            k8s/services/weather-service.yml
-            k8s/services/gateway-service.yml
-            k8s/services/news-service.yml
-            k8s/services/astronomy-service.yml
-            k8s/services/service-registry.yml
-          images: |
-            atmosregistry1213.azurecr.io/weather-service:${{ github.sha }}
-            atmosregistry1213.azurecr.io/auth-service:${{ github.sha }}
-            atmosregistry1213.azurecr.io/gateway-service:${{ github.sha }}
-            atmosregistry1213.azurecr.io/news-service:${{ github.sha }}
-            atmosregistry1213.azurecr.io/notification-service:${{ github.sha }}
-            atmosregistry1213.azurecr.io/astronomy-service:${{ github.sha }}
-            atmosregistry1213.azurecr.io/service-registry:${{ github.sha }}
+      - name: Deploy via Command Invoke
+        run: |
+          # This command works even if the cluster is private or behind a firewall
+          az aks command invoke \
+            --resource-group ${{ secrets.AKS_RESOURCE_GROUP }} \
+            --name ${{ secrets.AKS_NAME }} \
+            --command "kubectl apply -f k8s/00-namespace.yml && \
+                      kubectl apply -f k8s/02-configmaps.yml && \
+                      kubectl apply -f k8s/ingress.yml && \
+                      kubectl apply -f k8s/services/" \
+            --file k8s/00-namespace.yml \
+            --file k8s/02-configmaps.yml \
+            --file k8s/ingress.yml \
+            --file k8s/services/auth-service.yml \
+            --file k8s/services/notification-service.yml \
+            --file k8s/services/weather-service.yml \
+            --file k8s/services/gateway-service.yml \
+            --file k8s/services/news-service.yml \
+            --file k8s/services/astronomy-service.yml \
+            --file k8s/services/service-registry.yml
