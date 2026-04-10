@@ -74,26 +74,12 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Deploy via Command Invoke
+      - name: Deploy Infrastructure and Services
         run: |
           az aks command invoke \
             --resource-group ${{ secrets.AKS_RESOURCE_GROUP }} \
             --name ${{ secrets.AKS_NAME }} \
-            --command "kubectl apply -f 00-namespace.yml && \
-                      kubectl apply -f 02-configmaps.yml && \
-                      kubectl apply -f zookeeper.yml && \
-                      kubectl apply -f kafka.yml && \
-                      kubectl apply -f zipkin.yml && \
-                      kubectl apply -f 00-namespace.yml && \
-                      kubectl apply -f 02-configmaps.yml && \
-                      kubectl apply -f ingress.yml && \
-                      kubectl apply -f auth-service.yml && \
-                      kubectl apply -f notification-service.yml && \
-                      kubectl apply -f weather-service.yml && \
-                      kubectl apply -f gateway-service.yml && \
-                      kubectl apply -f news-service.yml && \
-                      kubectl apply -f astronomy-service.yml && \
-                      kubectl apply -f service-registry.yml" \
+            --command "kubectl apply -f ." \
             --file k8s/00-namespace.yml \
             --file k8s/02-configmaps.yml \
             --file k8s/ingress.yml \
