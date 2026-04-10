@@ -33,11 +33,11 @@ spec:
                 name: atmos-config
           resources:
             requests:
-              memory: "384Mi"
-              cpu: "250m"
+              memory: "256Mi"
+              cpu: "100m"
             limits:
-              memory: "512Mi"
-              cpu: "500m"
+              memory: "384Mi"
+              cpu: "200m"
           readinessProbe:
             httpGet:
               path: /actuator/health
