@@ -1,4 +1,4 @@
-name: ATMOS CI Pipeline
+name: ATMOS CI/CD Pipeline
 
 on:
   push:
@@ -11,8 +11,6 @@ on:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
-    
-    # Define your services and their exact folder names
     strategy:
       matrix:
         include:
@@ -26,7 +24,7 @@ jobs:
             image: 'news-service'
           - folder: 'notification-service'
             image: 'notification-service'
-          - folder: 'Astronomy-service'     # Fixed Case Sensitivity issue
+          - folder: 'Astronomy-service'
             image: 'astronomy-service'
           - folder: 'service-registry'
             image: 'service-registry'
@@ -58,7 +56,36 @@ jobs:
         with:
           context: ./${{ matrix.folder }}
           push: true
-          # Tags it with both 'latest' and the specific Git commit hash for Azure
           tags: |
             atmosregistry1213.azurecr.io/${{ matrix.image }}:latest
             atmosregistry1213.azurecr.io/${{ matrix.image }}:${{ github.sha }}
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Set AKS Context
+        uses: azure/aks-set-context@v3
+        with:
+          resource-group: ${{ secrets.AKS_RESOURCE_GROUP }}
+          cluster-name: ${{ secrets.AKS_NAME }}
+
+      - name: Deploy Base Infrastructure
+        run: |
+          kubectl apply -f k8s/00-namespace.yml
+          kubectl apply -f k8s/02-configmaps.yml
+          kubectl apply -f k8s/ingress.yml
+
+      - name: Deploy Services
+        run: |
+          kubectl apply -f k8s/services/
