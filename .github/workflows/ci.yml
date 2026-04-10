@@ -74,22 +74,22 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Deploy Infrastructure and Services
+      - name: Prepare Deployment Files
         run: |
+          mkdir deploy_temp
+          cp k8s/00-namespace.yml deploy_temp/
+          cp k8s/02-configmaps.yml deploy_temp/
+          cp k8s/ingress.yml deploy_temp/
+          cp k8s/infrastructure/zookeeper.yml deploy_temp/
+          cp k8s/infrastructure/kafka.yml deploy_temp/
+          cp k8s/infrastructure/zipkin.yml deploy_temp/
+          cp k8s/services/*.yml deploy_temp/
+
+      - name: Deploy via Command Invoke
+        run: |
+          # We upload the small temp folder and apply all YAMLs inside it
           az aks command invoke \
             --resource-group ${{ secrets.AKS_RESOURCE_GROUP }} \
             --name ${{ secrets.AKS_NAME }} \
             --command "kubectl apply -f ." \
-            --file k8s/00-namespace.yml \
-            --file k8s/02-configmaps.yml \
-            --file k8s/ingress.yml \
-            --file k8s/infrastructure/zookeeper.yml \
-            --file k8s/infrastructure/kafka.yml \
-            --file k8s/infrastructure/zipkin.yml \
-            --file k8s/services/auth-service.yml \
-            --file k8s/services/notification-service.yml \
-            --file k8s/services/weather-service.yml \
-            --file k8s/services/gateway-service.yml \
-            --file k8s/services/news-service.yml \
-            --file k8s/services/astronomy-service.yml \
-            --file k8s/services/service-registry.yml
+            --file deploy_temp/
