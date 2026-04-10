@@ -87,7 +87,13 @@ jobs:
             k8s/00-namespace.yml
             k8s/02-configmaps.yml
             k8s/ingress.yml
-            k8s/services/*.yml
+            k8s/services/auth-service.yml
+            k8s/services/notification-service.yml
+            k8s/services/weather-service.yml
+            k8s/services/gateway-service.yml
+            k8s/services/news-service.yml
+            k8s/services/astronomy-service.yml
+            k8s/services/service-registry.yml
           images: |
             atmosregistry1213.azurecr.io/weather-service:${{ github.sha }}
             atmosregistry1213.azurecr.io/auth-service:${{ github.sha }}
