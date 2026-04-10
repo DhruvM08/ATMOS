@@ -1,0 +1,43 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'service-registry'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['service-registry:8761']
+
+  - job_name: 'gateway-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['gateway-service:8080']
+
+  - job_name: 'auth-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['auth-service:8081']
+
+  - job_name: 'notification-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['notification-service:8082']
+
+  - job_name: 'weather-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['weather-service:8083']
+
+  - job_name: 'astronomy-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['astronomy-service:8084']
+
+  - job_name: 'news-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['news-service:8085']

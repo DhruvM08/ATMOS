@@ -1,0 +1,72 @@
+# =====================================================
+# Astronomy Service — Celestial data (sunrise, moonphase)
+# =====================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: astronomy-service
+  namespace: atmos
+  labels:
+    app: astronomy-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: astronomy-service
+  template:
+    metadata:
+      labels:
+        app: astronomy-service
+    spec:
+      initContainers:
+        - name: wait-for-eureka
+          image: busybox:1.36
+          command: ['sh', '-c', 'until nc -z service-registry 8761; do echo "Waiting for Eureka..."; sleep 5; done;']
+      containers:
+        - name: astronomy-service
+          image: atmosregistry1213.azurecr.io/astronomy-service:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8084
+          envFrom:
+            - configMapRef:
+                name: atmos-config
+          env:
+            - name: weather.api5.key
+              valueFrom:
+                secretKeyRef:
+                  name: atmos-secrets
+                  key: WEATHERAPI_KEY
+          resources:
+            requests:
+              memory: "384Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8084
+            initialDelaySeconds: 40
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8084
+            initialDelaySeconds: 60
+            periodSeconds: 20
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: astronomy-service
+  namespace: atmos
+spec:
+  selector:
+    app: astronomy-service
+  ports:
+    - port: 8084
+      targetPort: 8084
+  type: ClusterIP

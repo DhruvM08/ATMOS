@@ -1,0 +1,111 @@
+# =====================================================
+# Weather Service — Multi-API weather data orchestration
+# =====================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: weather-service
+  namespace: atmos
+  labels:
+    app: weather-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: weather-service
+  template:
+    metadata:
+      labels:
+        app: weather-service
+    spec:
+      initContainers:
+        - name: wait-for-eureka
+          image: busybox:1.36
+          command: ['sh', '-c', 'until nc -z service-registry 8761; do echo "Waiting for Eureka..."; sleep 5; done;']
+      containers:
+        - name: weather-service
+          image: atmosregistry1213.azurecr.io/weather-service:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8083
+          envFrom:
+            - configMapRef:
+                name: atmos-config
+          env:
+            - name: EUREKA_SERVER
+              value: "service-registry"
+            - name: spring.data.mongodb.uri
+              valueFrom:
+                secretKeyRef:
+                  name: atmos-secrets
+                  key: MONGODB_WEATHER_URI
+            - name: spring.data.redis.url
+              valueFrom:
+                secretKeyRef:
+                  name: atmos-secrets
+                  key: REDIS_URL
+            - name: weather.api1.key
+              valueFrom:
+                secretKeyRef:
+                  name: atmos-secrets
+                  key: OPENWEATHER_API_KEY
+            - name: weather.api2.key
+              valueFrom:
+                secretKeyRef:
+                  name: atmos-secrets
+                  key: ACCUWEATHER_API_KEY
+            - name: weather.api3.key
+              valueFrom:
+                secretKeyRef:
+                  name: atmos-secrets
+                  key: FORECA_API_KEY
+            - name: weather.api4.key
+              valueFrom:
+                secretKeyRef:
+                  name: atmos-secrets
+                  key: WEATHERSTACK_API_KEY
+            - name: weather.api5.key
+              valueFrom:
+                secretKeyRef:
+                  name: atmos-secrets
+                  key: WEATHERAPI_KEY
+            - name: weather.api6.key
+              valueFrom:
+                secretKeyRef:
+                  name: atmos-secrets
+                  key: NEWS_API_KEY
+          resources:
+            requests:
+              memory: "384Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8083
+            initialDelaySeconds: 120
+            timeoutSeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8083
+            initialDelaySeconds: 180
+            timeoutSeconds: 5
+            periodSeconds: 20
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: weather-service
+  namespace: atmos
+spec:
+  selector:
+    app: weather-service
+  ports:
+    - port: 8083
+      targetPort: 8083
+  type: ClusterIP

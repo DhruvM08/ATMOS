@@ -1,0 +1,34 @@
+# --- Java / Maven ---
+target/
+*.jar
+*.war
+*.ear
+.mvn/wrapper/maven-wrapper.jar
+
+# --- IDEs ---
+.idea/
+*.iml
+.vscode/
+.project
+.settings/
+.classpath
+.factorypath
+
+# --- Sensitive Information (CRITICAL) ---
+k8s/01-secrets.yml
+*.key
+*.pem
+*.jks
+*.p12
+.env
+
+# --- OS Specific ---
+.DS_Store
+Thumbs.db
+
+# --- Logs ---
+*.log
+logs/
+weather-logs.txt
+notification-logs.txt
+notification-logs-success.txt

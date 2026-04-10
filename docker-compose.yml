@@ -1,0 +1,237 @@
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus-service
+    volumes:
+      - ./prometheus-config/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    networks:
+      - atmos-network
+
+  zookeeper:
+    image: wurstmeister/zookeeper
+    container_name: zookeeper
+    ports:
+      - "2181:2181"
+    networks:
+      - atmos-network 
+  
+  kafka:
+    image: wurstmeister/kafka
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_CREATE_TOPICS: "weather-alerts:1:1,auth-alerts:1:1,news-alerts:1:1"
+    depends_on:
+      - zookeeper
+    networks:
+      - atmos-network
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    ports:
+      - "8989:8080"
+    environment:
+      - KAFKA_CLUSTERS_0_NAME=local
+      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka:9092
+      - KAFKA_CLUSTERS_0_ZOOKEEPER=zookeeper:2181
+    depends_on:
+      - kafka
+    networks:
+      - atmos-network
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana-service
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    restart: unless-stopped
+    networks:
+      - atmos-network
+
+  service-registry:
+    build: ./service-registry
+    image: dhruvv02/service-registry:latest
+    container_name: service-registry
+    ports:
+      - "8761:8761"
+    environment:
+      - MANAGEMENT_TRACING_SAMPLING_PROBABILITY=1.0
+      - MANAGEMENT_ZIPKIN_TRACING_ENDPOINT=http://zipkin:9411/api/v2/spans
+      - LOGSTASH_HOST=logstash
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+    networks:
+      - atmos-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8761/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  gateway-service:
+    build: ./gateway-service
+    image: dhruvv02/gateway-service:latest
+    container_name: gateway-service
+    ports:
+      - "8080:8080"
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://service-registry:8761/eureka/
+      - MANAGEMENT_TRACING_SAMPLING_PROBABILITY=1.0
+      - MANAGEMENT_ZIPKIN_TRACING_ENDPOINT=http://zipkin:9411/api/v2/spans
+      - LOGSTASH_HOST=logstash
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+    depends_on:
+      - service-registry
+    networks:
+      - atmos-network
+
+  auth-service:
+    build: ./auth-service
+    image: dhruvv02/auth-service:latest
+    container_name: auth-service
+    ports:
+      - "8081:8081"
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://service-registry:8761/eureka/
+      - MANAGEMENT_TRACING_SAMPLING_PROBABILITY=1.0
+      - MANAGEMENT_ZIPKIN_TRACING_ENDPOINT=http://zipkin:9411/api/v2/spans
+      - LOGSTASH_HOST=logstash
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+    depends_on:
+      - service-registry
+    networks:
+      - atmos-network
+
+  notification-service:
+    build: ./notification-service
+    image: dhruvv02/notification-service:latest
+    container_name: notification-service
+    ports:
+      - "8082:8082"
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://service-registry:8761/eureka/
+      - MANAGEMENT_TRACING_SAMPLING_PROBABILITY=1.0
+      - MANAGEMENT_ZIPKIN_TRACING_ENDPOINT=http://zipkin:9411/api/v2/spans
+      - LOGSTASH_HOST=logstash
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+    depends_on:
+      - service-registry
+    networks:
+      - atmos-network
+
+  weather-service:
+    build: ./weather-service
+    image: dhruvv02/weather-service:latest
+    container_name: weather-service
+    ports:
+      - "8083:8083"
+    environment:
+      - EUREKA_SERVER=service-registry
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://service-registry:8761/eureka/
+      - MANAGEMENT_TRACING_SAMPLING_PROBABILITY=1.0
+      - MANAGEMENT_ZIPKIN_TRACING_ENDPOINT=http://zipkin:9411/api/v2/spans
+      - LOGSTASH_HOST=logstash
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+    depends_on:
+      service-registry:
+        condition: service_healthy
+    networks:
+      - atmos-network
+
+  astronomy-service:
+    build: ./Astronomy-service
+    image: dhruvv02/astronomy-service:latest
+    container_name: astronomy-service
+    ports:
+      - "8084:8084"
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://service-registry:8761/eureka/
+      - MANAGEMENT_TRACING_SAMPLING_PROBABILITY=1.0
+      - MANAGEMENT_ZIPKIN_TRACING_ENDPOINT=http://zipkin:9411/api/v2/spans
+      - LOGSTASH_HOST=logstash
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+    depends_on:
+      - service-registry
+    networks:
+      - atmos-network
+
+  news-service:
+    build: ./news-service
+    image: dhruvv02/news-service:latest
+    container_name: news-service
+    ports:
+      - "8085:8085"
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://service-registry:8761/eureka/
+      - MANAGEMENT_TRACING_SAMPLING_PROBABILITY=1.0
+      - MANAGEMENT_ZIPKIN_TRACING_ENDPOINT=http://zipkin:9411/api/v2/spans
+      - LOGSTASH_HOST=logstash
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+    depends_on:
+      - service-registry
+    networks:
+      - atmos-network
+
+  zipkin:
+    image: openzipkin/zipkin
+    container_name: zipkin
+    ports:
+      - "9411:9411"
+    networks:
+      - atmos-network
+
+  elasticsearch:
+    image: elasticsearch:8.11.1
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    ports:
+      - "9200:9200"
+    networks:
+      - atmos-network
+
+  logstash:
+    image: logstash:8.11.1
+    container_name: logstash
+    volumes:
+      - ./logstash-config/logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
+    ports:
+      - "5000:5000"
+    environment:
+      - LS_JAVA_OPTS=-Xms256m -Xmx256m
+    depends_on:
+      - elasticsearch
+    networks:
+      - atmos-network
+
+  kibana:
+    image: kibana:8.11.1
+    container_name: kibana
+    ports:
+      - "5601:5601"
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    depends_on:
+      - elasticsearch
+    networks:
+      - atmos-network
+
+networks:
+  atmos-network:
+    driver: bridge
+
+volumes:
+  grafana_data:

@@ -1,0 +1,12 @@
+# Kubernetes Manifest Garbage
+*.txt
+*.log
+*.tmp
+*.bak
+
+# Sensitive Information
+01-secrets.yml
+
+# OS Specific
+.DS_Store
+Thumbs.db
