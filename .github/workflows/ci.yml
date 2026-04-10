@@ -87,7 +87,7 @@ jobs:
             k8s/00-namespace.yml
             k8s/02-configmaps.yml
             k8s/ingress.yml
-            k8s/services/
+            k8s/services/*.yml
           images: |
             atmosregistry1213.azurecr.io/weather-service:${{ github.sha }}
             atmosregistry1213.azurecr.io/auth-service:${{ github.sha }}
