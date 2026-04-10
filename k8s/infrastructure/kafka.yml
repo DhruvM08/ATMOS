@@ -40,6 +40,8 @@ spec:
               value: "PLAINTEXT"
             - name: KAFKA_CREATE_TOPICS
               value: "weather-alerts:1:1,auth-alerts:1:1,news-alerts:1:1"
+            - name: KAFKA_HEAP_OPTS
+              value: "-Xmx256m -Xms128m"
           resources:
             requests:
               memory: "256Mi"
