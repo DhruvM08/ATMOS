@@ -74,22 +74,31 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Prepare Deployment Files
+      - name: Get AKS Credentials
         run: |
-          mkdir deploy_temp
-          cp k8s/00-namespace.yml deploy_temp/
-          cp k8s/02-configmaps.yml deploy_temp/
-          cp k8s/ingress.yml deploy_temp/
-          cp k8s/infrastructure/zookeeper.yml deploy_temp/
-          cp k8s/infrastructure/kafka.yml deploy_temp/
-          cp k8s/infrastructure/zipkin.yml deploy_temp/
-          cp k8s/services/*.yml deploy_temp/
-
-      - name: Deploy via Command Invoke
-        run: |
-          # We upload the small temp folder and apply all YAMLs inside it
-          az aks command invoke \
+          az aks get-credentials \
             --resource-group ${{ secrets.AKS_RESOURCE_GROUP }} \
             --name ${{ secrets.AKS_NAME }} \
-            --command "kubectl apply -f ." \
-            --file deploy_temp/
+            --overwrite-existing
+
+      - name: Deploy Infrastructure
+        run: |
+          kubectl apply -f k8s/00-namespace.yml
+          kubectl apply -f k8s/02-configmaps.yml
+          kubectl apply -f k8s/infrastructure/zookeeper.yml
+          kubectl apply -f k8s/infrastructure/kafka.yml
+          kubectl apply -f k8s/infrastructure/zipkin.yml
+
+      - name: Deploy Services
+        run: |
+          kubectl apply -f k8s/services/service-registry.yml
+          kubectl apply -f k8s/services/auth-service.yml
+          kubectl apply -f k8s/services/gateway-service.yml
+          kubectl apply -f k8s/services/weather-service.yml
+          kubectl apply -f k8s/services/notification-service.yml
+          kubectl apply -f k8s/services/news-service.yml
+          kubectl apply -f k8s/services/astronomy-service.yml
+          kubectl apply -f k8s/ingress.yml
+
+      - name: Verify Deployment
+        run: kubectl get pods -n atmos
