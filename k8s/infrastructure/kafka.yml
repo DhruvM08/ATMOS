@@ -42,11 +42,11 @@ spec:
               value: "weather-alerts:1:1,auth-alerts:1:1,news-alerts:1:1"
           resources:
             requests:
-              memory: "512Mi"
-              cpu: "300m"
+              memory: "384Mi"
+              cpu: "150m"
             limits:
-              memory: "1Gi"
-              cpu: "700m"
+              memory: "512Mi"
+              cpu: "400m"
           readinessProbe:
             tcpSocket:
               port: 9092
@@ -62,8 +62,7 @@ spec:
               mountPath: /kafka
       volumes:
         - name: kafka-data
-          persistentVolumeClaim:
-            claimName: kafka-pvc
+          emptyDir: {}
 
 ---
 apiVersion: v1
@@ -78,16 +77,3 @@ spec:
     - port: 9092
       targetPort: 9092
   clusterIP: None
-
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: kafka-pvc
-  namespace: atmos
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 5Gi

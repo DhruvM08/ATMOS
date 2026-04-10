@@ -26,10 +26,10 @@ spec:
           resources:
             requests:
               memory: "256Mi"
-              cpu: "200m"
+              cpu: "100m"
             limits:
-              memory: "512Mi"
-              cpu: "500m"
+              memory: "384Mi"
+              cpu: "250m"
           readinessProbe:
             tcpSocket:
               port: 2181
@@ -45,8 +45,7 @@ spec:
               mountPath: /opt/zookeeper-3.4.13/data
       volumes:
         - name: zookeeper-data
-          persistentVolumeClaim:
-            claimName: zookeeper-pvc
+          emptyDir: {}
 
 ---
 apiVersion: v1
@@ -60,17 +59,4 @@ spec:
   ports:
     - port: 2181
       targetPort: 2181
-  clusterIP: None  # Headless service for stable DNS
-
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: zookeeper-pvc
-  namespace: atmos
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 1Gi
+  clusterIP: None
