@@ -76,11 +76,15 @@ jobs:
 
       - name: Deploy via Command Invoke
         run: |
-          # We upload all files and then apply everything in the current directory
           az aks command invoke \
             --resource-group ${{ secrets.AKS_RESOURCE_GROUP }} \
             --name ${{ secrets.AKS_NAME }} \
             --command "kubectl apply -f 00-namespace.yml && \
+                      kubectl apply -f 02-configmaps.yml && \
+                      kubectl apply -f zookeeper.yml && \
+                      kubectl apply -f kafka.yml && \
+                      kubectl apply -f zipkin.yml && \
+                      kubectl apply -f 00-namespace.yml && \
                       kubectl apply -f 02-configmaps.yml && \
                       kubectl apply -f ingress.yml && \
                       kubectl apply -f auth-service.yml && \
@@ -93,6 +97,9 @@ jobs:
             --file k8s/00-namespace.yml \
             --file k8s/02-configmaps.yml \
             --file k8s/ingress.yml \
+            --file k8s/infrastructure/zookeeper.yml \
+            --file k8s/infrastructure/kafka.yml \
+            --file k8s/infrastructure/zipkin.yml \
             --file k8s/services/auth-service.yml \
             --file k8s/services/notification-service.yml \
             --file k8s/services/weather-service.yml \
