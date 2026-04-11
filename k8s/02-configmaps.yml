@@ -15,8 +15,8 @@ data:
   # Zipkin
   MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: "http://zipkin:9411/api/v2/spans"
   MANAGEMENT_TRACING_SAMPLING_PROBABILITY: "1.0"
-  # Logstash
-  LOGSTASH_HOST: "logstash"
+  # Logstash (Disabled by pointing to localhost)
+  LOGSTASH_HOST: "localhost"
   # SMTP host/port
   SMTP_HOST: "smtp.gmail.com"
   SMTP_PORT: "587"
