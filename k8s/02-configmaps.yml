@@ -15,8 +15,6 @@ data:
   # Zipkin
   MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: "http://zipkin:9411/api/v2/spans"
   MANAGEMENT_TRACING_SAMPLING_PROBABILITY: "1.0"
-  # Logstash (Disabled)
-  LOGSTASH_HOST: "localhost"
   # SMTP host/port
   SMTP_HOST: "smtp.gmail.com"
   SMTP_PORT: "587"
@@ -78,28 +76,3 @@ data:
         static_configs:
           - targets: ['news-service:8085']
 
----
-# =====================================================
-# Logstash pipeline configuration
-# =====================================================
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: logstash-config
-  namespace: atmos
-data:
-  logstash.conf: |
-    input {
-      tcp {
-        port => 5000
-        codec => json_lines
-      }
-    }
-
-    output {
-      elasticsearch {
-        hosts => ["elasticsearch:9200"]
-        index => "atmos-logs-%{+YYYY.MM.dd}"
-      }
-      stdout { codec => rubydebug }
-    }

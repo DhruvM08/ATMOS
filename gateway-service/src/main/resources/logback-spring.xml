@@ -5,17 +5,8 @@
 
     <springProperty scope="context" name="appName" source="spring.application.name"/>
 
-    <!-- Appender to log to Logstash -->
-    <appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
-        <destination>${LOGSTASH_HOST:-localhost}:5000</destination>
-        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
-            <customFields>{"app_name":"${appName}"}</customFields>
-        </encoder>
-    </appender>
-
     <root level="INFO">
         <appender-ref ref="CONSOLE"/>
-        <appender-ref ref="LOGSTASH"/>
     </root>
 
     <!-- App-specific logging levels -->
