@@ -10,6 +10,8 @@ metadata:
     app: astronomy-service
 spec:
   replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: astronomy-service
@@ -37,6 +39,11 @@ spec:
                 secretKeyRef:
                   name: atmos-secrets
                   key: WEATHERAPI_KEY
+            - name: MONGODB_ASTRONOMY_URI
+              valueFrom:
+                secretKeyRef:
+                  name: atmos-secrets
+                  key: MONGODB_ASTRONOMY_URI
           resources:
             requests:
               memory: "256Mi"

@@ -11,6 +11,8 @@ metadata:
     app: gateway-service
 spec:
   replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: gateway-service
@@ -41,6 +43,11 @@ spec:
                 secretKeyRef:
                   name: atmos-secrets
                   key: REDIS_URL
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: atmos-secrets
+                  key: JWT_SECRET
           resources:
             requests:
               memory: "256Mi"

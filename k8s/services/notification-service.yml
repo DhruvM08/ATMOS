@@ -10,6 +10,8 @@ metadata:
     app: notification-service
 spec:
   replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: notification-service
@@ -69,6 +71,21 @@ spec:
               value: "true"
             - name: spring.mail.properties.mail.smtp.starttls.enable
               value: "true"
+            - name: TWILIO_ACCOUNT_SID
+              valueFrom:
+                secretKeyRef:
+                  name: atmos-secrets
+                  key: TWILIO_ACCOUNT_SID
+            - name: TWILIO_AUTH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: atmos-secrets
+                  key: TWILIO_AUTH_TOKEN
+            - name: TWILIO_PHONE_NUMBER
+              valueFrom:
+                secretKeyRef:
+                  name: atmos-secrets
+                  key: TWILIO_PHONE_NUMBER
           resources:
             requests:
               memory: "256Mi"
