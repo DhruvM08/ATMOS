@@ -88,8 +88,6 @@ jobs:
           kubectl apply -f k8s/infrastructure/zookeeper.yml
           kubectl apply -f k8s/infrastructure/kafka.yml
           kubectl apply -f k8s/infrastructure/zipkin.yml
-          kubectl apply -f k8s/infrastructure/elasticsearch.yml
-          kubectl apply -f k8s/infrastructure/logstash.yml
 
       - name: Deploy Services
         run: |
