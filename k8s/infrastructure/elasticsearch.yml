@@ -29,13 +29,13 @@ spec:
             - name: xpack.security.enabled
               value: "false"
             - name: ES_JAVA_OPTS
-              value: "-Xms512m -Xmx512m"
+              value: "-Xms256m -Xmx256m"
           resources:
             requests:
               memory: "768Mi"
               cpu: "200m"
             limits:
-              memory: "1Gi"
+              memory: "1536Mi"
               cpu: "500m"
           readinessProbe:
             tcpSocket:
